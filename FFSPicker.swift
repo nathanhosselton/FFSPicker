@@ -40,12 +40,14 @@ import UIKit.UIPickerView
  Especially useful when dealing with multiple pickers.
  */
 final public class FFSPicker {
+
     /// The data source for the underlying UIPickerView.
     public let list: [String]
+
     /// The underlying UIPickerView being managed.
     public let view: UIPickerView
 
-    let manager: FFSPickerViewManager
+    private let manager: FFSPickerViewManager
 
     /**
      The designated initializer for this class.
@@ -70,9 +72,9 @@ final public class FFSPicker {
 
 }
 
+// MARK: Internal
 
-
-final class FFSPickerViewManager: NSObject {
+final private class FFSPickerViewManager: NSObject {
     let count: () -> Int
     let title: (Int) -> String
     let handle: (String) -> Void
