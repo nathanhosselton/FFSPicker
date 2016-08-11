@@ -1,4 +1,9 @@
-#Why
+#FFSPicker
+![badge-tag] ![badge-language] ![badge-license]  
+_Delegation is alright in its place, but_ [sometimes] _its place is in hell._
+
+FFSPicker is a wrapper for your UIPickerViews. It handles the most common delegation patterns so your view controllers don't have to.
+##Why
 
 Sometimes you need a picker for the input of a text field.
 
@@ -91,3 +96,31 @@ for (textField, picker) in [(textField1, picker1), (textField2, picker2), (textF
 ```
 
 *Better.*
+
+###Better yet...
+
+Not interested in anything else in your closure? Screw it. Just give your picker a text field and it'll update the text for you.
+```swift
+picker = FFSPicker(withList: myList)
+picker.textField = textField
+textField.inputView = picker.view
+```
+> Note: Your text field will be weakly retained
+
+###Storyboard
+Already got a picker view? That's cool too. The `init` optionally takes one to be used instead.
+```swift
+picker = FFSPicker(withList: myList, view: myPickerView)
+```
+> Note: Your picker view will be **_strongly_** retained. But this shouldn't be a problem.  
+> Note: `FFSPicker` does not subclass `UIPickerView`, so you cannot use it on storyboard directly.
+
+#Installation
+It's one file so it hardly makes sense to build a framework for it. Still, I will probably support the usual dependency managers by v1.0. **Simply adding the source file to your project manually is likely the best choice**. If you must build the framework, download/clone and drop the project file into your workspace for now.
+
+##Oh, about 1.0.0
+I've got some more things I'm thinking about adding in for that milestone, like automatic support for additional components and Objective-C bridging. Until then, **any tagged commit is a tested/safe release**. This is just a pet project so there is no timeline. PRs are always welcome.
+
+[badge-tag]: https://img.shields.io/github/tag/nathanhosselton/FFSPicker.svg
+[badge-language]: https://img.shields.io/badge/language-Swift-orange.svg
+[badge-license]: https://img.shields.io/github/license/nathanhosselton/FFSPicker.svg
