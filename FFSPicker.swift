@@ -25,6 +25,7 @@
 //
 
 import UIKit.UIPickerView
+import UIKit.UITextField
 
 /**
  A wrapper class for `UIPickerView` that automatically handles
@@ -47,6 +48,25 @@ final public class FFSPicker {
     /// The underlying UIPickerView being managed.
     public let view: UIPickerView
 
+    /**
+     The text field to be optionally managed.
+     
+     If provided, `FFSPicker` will automatically update the
+     text field with the text of the current picker selection.
+     Usually, you would use this as an alternative to providing
+     a closure when the closure would fulfill the same purpose.
+
+     - Note: The text field is weakly retained.
+    */
+    public var textField: UITextField? {
+        get {
+            return manager.textField
+        }
+        set {
+            manager.textField = newValue
+        }
+    }
+
     private let manager: FFSPickerViewManager
 
     /**
@@ -61,7 +81,7 @@ final public class FFSPicker {
 
      - Returns: A new, fully constructed FFSPicker
      */
-    public init(withList list: [String], view: UIPickerView = UIPickerView(), callback: (String) -> Void) {
+    public init(withList list: [String], view: UIPickerView = UIPickerView(), callback: ((String) -> Void)? = nil) {
         self.list = list
         self.view = view
 
@@ -77,9 +97,10 @@ final public class FFSPicker {
 final private class FFSPickerViewManager: NSObject {
     let count: () -> Int
     let title: (Int) -> String
-    let handle: (String) -> Void
+    let handle: ((String) -> Void)?
+    weak var textField: UITextField?
 
-    init(counter: @autoclosure(escaping) () -> Int, titler: (Int) -> String, handler: (String) -> Void) {
+    init(counter: @autoclosure(escaping) () -> Int, titler: (Int) -> String, handler: ((String) -> Void)?) {
         self.count = counter
         self.title = titler
         self.handle = handler
@@ -106,7 +127,8 @@ extension FFSPickerViewManager: UIPickerViewDelegate {
     }
 
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        handle(title(row))
+        textField?.text = title(row)
+        handle?(title(row))
     }
     
 }
