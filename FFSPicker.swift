@@ -100,7 +100,7 @@ final private class FFSPickerViewManager: NSObject {
     let handle: ((String) -> Void)?
     weak var textField: UITextField?
 
-    init(counter: @autoclosure(escaping) () -> Int, titler: (Int) -> String, handler: ((String) -> Void)?) {
+    init(counter: @autoclosure @escaping  () -> Int, titler: @escaping (Int) -> String, handler: ((String) -> Void)?) {
         self.count = counter
         self.title = titler
         self.handle = handler
