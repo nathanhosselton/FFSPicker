@@ -30,29 +30,30 @@ import UIKit.UITextField
 /**
  A wrapper class for `UIPickerView` that automatically handles
  delegation for the common pattern of single-component pickers
- used to select from a list of strings (usually: as the input
- view of a text field).
- 
+ used to select from a list of strings, and typically as the input
+ view of a text field.
+
  ```
- let picker = FFSPicker(withList: mySelections, callback: { [unowned self] in self.textField.text = $0 })
- textField.inputView = picker.view
+ let picker = FFSPicker(withList: myList, managing: textField)
  ```
- 
+
  Especially useful when dealing with multiple pickers.
  */
-final public class FFSPicker {
+final public class FFSPicker<T: CustomStringConvertible> {
+    /// The data source for the underlying `UIPickerView`. Usually, this will be an array
+    /// of `String`, but can be any object that provides a `description` via `CustomStringConvertible`
+    public let list: [T]
 
-    /// The data source for the underlying UIPickerView.
-    public let list: [String]
-
-    /// The underlying UIPickerView being managed.
+    /// The underlying `UIPickerView` object being managed.
+    /// - Note: If you're not interested in provided one yourself, this will contain the object we create for you.
     public let view: UIPickerView
 
     /**
-     The text field to be optionally managed.
+     The `UITextField` object to be optionally managed.
      
-     If provided, `FFSPicker` will automatically update the
-     text field with the text of the current picker selection.
+     If provided, `FFSPicker` will automatically update the text field with the text of the current picker selection.
+     If no text field is provided, this property will be `nil`.
+
      Usually, you would use this as an alternative to providing
      a closure when the closure would fulfill the same purpose.
 
@@ -64,71 +65,80 @@ final public class FFSPicker {
         }
         set {
             manager.textField = newValue
+            manager.textField?.inputView = shouldManageTextFieldInputView ? view : nil
         }
     }
 
-    private let manager: FFSPickerViewManager
+    /// The closure that `FFSPicker` will call when an item is selected in the `view`,
+    /// providing the object from the corresponding position in the `list`, as well as
+    /// the associated `textField`, if present.
+    public var callback: ((T, UITextField?) -> Void)? {
+        get { return manager.handle }
+        set { manager.handle = newValue }
+    }
+
+    /// Set to false if you do not wish for `FFSPicker` to automatically set its `view` as the
+    /// `inputView` of the provided `textField`. This property's value is `true` by default.
+    public var shouldManageTextFieldInputView: Bool = true {
+        didSet {
+            manager.textField?.inputView = shouldManageTextFieldInputView ? view : nil
+        }
+    }
 
     /**
      The designated initializer for this class.
-     
+
      - Parameter list: The data source for the underlying `UIPickerView`.
      
-     - Parameter view: *Optional* The `UIPickerView` to be used.
-     
-     - Parameter callback: A closure that passes in the string value
-        of the picker view's currently-selected row.
+     - Parameter view: *Optional* An existing `UIPickerView` to be wrapped.
 
-     - Returns: A new, fully constructed FFSPicker
+     - Parameter managing: *Optional* An existing `UITextField` whose `text` and `inputView` should be managed.
+     
+     - Parameter callback: *Optional* A closure that passes in the string value
+        of the picker view's currently-selected row, as well as its corresponding text field for convenience.
      */
-    public init(withList list: [String], view: UIPickerView = UIPickerView(), callback: ((String) -> Void)? = nil) {
+    public init(withList list: [T], wrapping view: UIPickerView = UIPickerView(), managing field: UITextField? = nil, callback: ((T, UITextField?) -> Void)? = nil) {
         self.list = list
         self.view = view
 
-        manager = FFSPickerViewManager(counter: list.count, titler: { list[$0] }, handler: callback)
+        manager = FFSPickerViewManager(counter: list.count, grabber: { list[$0] }, handler: callback)
+
+        self.textField = field
         self.view.dataSource = manager
         self.view.delegate = manager
     }
 
-}
+    // MARK: Private
 
-// MARK: Internal
+    private let manager: FFSPickerViewManager
 
-final private class FFSPickerViewManager: NSObject {
-    let count: () -> Int
-    let title: (Int) -> String
-    let handle: ((String) -> Void)?
-    weak var textField: UITextField?
+    final private class FFSPickerViewManager: NSObject, UIPickerViewDataSource, UIPickerViewDelegate {
+        let count: () -> Int
+        let grab: (Int) -> T
+        var handle: ((T, UITextField?) -> Void)?
+        weak var textField: UITextField?
 
-    init(counter: @autoclosure @escaping  () -> Int, titler: @escaping (Int) -> String, handler: ((String) -> Void)?) {
-        self.count = counter
-        self.title = titler
-        self.handle = handler
+        init(counter: @autoclosure @escaping () -> Int, grabber: @escaping (Int) -> T, handler: ((T, UITextField?) -> Void)?) {
+            count = counter
+            grab = grabber
+            handle = handler
+        }
+
+        func numberOfComponents(in _: UIPickerView) -> Int {
+            return 1
+        }
+
+        func pickerView(_: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+            return count()
+        }
+
+        func pickerView(_: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+            return grab(row).description
+        }
+
+        func pickerView(_: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+            textField?.text = grab(row).description
+            handle?(grab(row), textField)
+        }
     }
-
-}
-
-extension FFSPickerViewManager: UIPickerViewDataSource {
-
-    func numberOfComponents(in pickerView: UIPickerView) -> Int {
-        return 1
-    }
-
-    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        return count()
-    }
-
-}
-
-extension FFSPickerViewManager: UIPickerViewDelegate {
-
-    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        return title(row)
-    }
-
-    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        textField?.text = title(row)
-        handle?(title(row))
-    }
-    
 }
