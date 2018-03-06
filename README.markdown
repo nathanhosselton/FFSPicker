@@ -1,22 +1,21 @@
 # FFSPicker
-
+###### Delegation is alright in its place, but (sometimes) its place is in hell.
 ![badge-tag] ![badge-language] ![badge-license]  
-_Delegation is alright in its place, but_ [sometimes] _its place is in hell._
 
 FFSPicker is a wrapper for your UIPickerViews. It handles the most common delegation patterns so your view controllers don't have to.
 
 ## Why
-Sometimes you need a picker for the input of a text field.
+Sometimes you need a picker view for the input of a text field.
 
 ```swift
-textField = //...
-picker = //...
+textField = //…
+pickerView = //…
 
-picker.dataSource = self
-picker.delegate = self
-textField.inputView = picker
+pickerView.dataSource = self
+pickerView.delegate = self
+textField.inputView = pickerView
 
-//...
+//…
 
 func numberOfComponents(in pickerView: UIPickerView) -> Int {
     return 1
@@ -36,7 +35,7 @@ func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent c
 
 ```
 
-Then, some of those times you need multiple pickers.
+Then, some of those times you need multiple picker views.
 
 ```swift
 // Triple the above boilerplate
@@ -54,48 +53,61 @@ func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: I
     }
 }
 
-//etc…
+//etc
 ```
 
 **...**
 
-## FFS…
-All you care about is shoving some data into a picker and knowing which item the user selected.
+## FFS
+All you care about is shoving some data into a picker view and updating a text field.
 
 ```swift
-picker1 = FFSPicker(withList: firstList, callback: { [unowned self] in self.textField1.text = $0 })
-picker2 = FFSPicker(withList: secondList, callback: { [unowned self] in self.textField2.text = $0 })
-picker3 = FFSPicker(withList: thirdList, callback: { [unowned self] in self.textField3.text = $0 })
-
-for (textField, picker) in [(textField1, picker1), (textField2, picker2), (textField3, picker3)] {
-    textField.inputView = picker.view
-}
+let firstPicker = FFSPicker(withList: firstList, managing: firstTextField)
+let secondPicker = FFSPicker(withList: secondList, managing: secondTextField)
+let thirdPicker = FFSPicker(withList: thirdList, managing: thirdTextField)
 ```
 
 *Better.*
 
-### Better yet
-Not interested in anything else in your closure? Screw it. Just give your picker a text field and it'll update the text for you.
+>Note: Your text field will be weakly retained.
+
+### Well, I care about a bit more
+Okay then. We expose a callback to hand back the object from your list and even pass in the text field (if you gave us one) for added convenience:
+
 ```swift
-picker = FFSPicker(withList: myList)
-picker.textField = textField
-textField.inputView = picker.view
+//Though `FFSPicker` is generic, Swift lets you specify your concrete type in the callback.
+func didSelect(thing: Foo, for textField: UITextField?) {
+    //Your logic here
+}
+
+let picker = FFSPicker(withList: firstList, managing: firstTextField, callback: didSelect)
+//Or if you've already initialized
+picker.callback = didSelect
 ```
-> Note: Your text field will be weakly retained
+
+>Tip: By declaring a function as we show above you effectively create your own delegate method, which is why we don't provide a delegate protocol. Our pattern allows you the freedom to alternatively configure individual handlers for each of your pickers.
+
+Since FFSPicker is all about reducing boilerplate, when you give us a text field we automatically configure the corresponding UIPickerView object as that field's `inputView`. But this may be overreaching in some cases, so you can disable that part of FFS while still letting us update your text field's text:
+
+```swift
+picker.shouldManageTextFieldInputView = false
+```
 
 ### Storyboard
-Already got a picker view? That's cool too. The `init` optionally takes one to be used instead.
+Already have a UIPickerView? That's cool too. The `init` optionally takes one to be used instead.
+
 ```swift
-picker = FFSPicker(withList: myList, view: myPickerView)
+let picker = FFSPicker(withList: myList, wrapping: myPickerView)
+//Then ask for it back like
+picker.view
 ```
-> Note: Your picker view will be **_strongly_** retained. But this shouldn't be a problem.  
-> Note: `FFSPicker` does not subclass `UIPickerView`, so you cannot use it on storyboard directly.
+
+>Note: Your UIPickerView will be _strongly_ retained. But this shouldn't be a problem.
+
+>Note: `FFSPicker` does not subclass `UIPickerView`, so you cannot use it on Storyboard directly.
 
 ## Installation
-It's one file so it hardly makes sense to build a framework for it. Still, I will probably support the usual dependency managers by v1.0. **Simply adding the source file to your project manually is likely the best choice**. If you must build the framework, download/clone and drop the project file into your workspace for now.
-
-### Oh, about 1.0.0
-I've got some more things I'm thinking about adding in for that milestone, like automatic support for additional components and Objective-C bridging. Until then, **any tagged commit is a tested/safe release**. This is just a pet project so there is no timeline. PRs are always welcome.
+It's one source file so it hardly makes sense to build a framework for it. Still, I will probably support the usual dependency managers eventually. **Simply adding the source file to your project manually is likely the best choice though**. If you must build the framework, download/clone and drop the project file into your workspace for now.
 
 [badge-tag]: https://img.shields.io/github/tag/nathanhosselton/FFSPicker.svg
 [badge-language]: https://img.shields.io/badge/language-Swift-orange.svg
