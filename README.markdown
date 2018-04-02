@@ -69,6 +69,8 @@ let thirdPicker = FFSPicker(withList: thirdList, managing: thirdTextField)
 
 *Better.*
 
+>Warning: `FFSPicker` is not a UIView and does not itself get added to the view hierarchy. Thus, you must retain your FFSPicker instances yourself (e.g. as properties on your view controller).
+
 >Note: Your text field will be weakly retained.
 
 ### Well, I care about a bit more
@@ -105,6 +107,29 @@ picker.view
 >Note: Your UIPickerView will be _strongly_ retained. But this shouldn't be a problem.
 
 >Note: `FFSPicker` does not subclass `UIPickerView`, so you cannot use it on Storyboard directly.
+
+### Advanced configuration
+
+FFSPicker is generic, accepting arrays of any type conforming to `CustomStringConvertible`. This means you can, for example, provide an array of `Int`, and it'll just work. It also means you can provide an array of any custom object, so long as you've implemented `description` as per the protocol:
+
+```swift
+struct Person {
+    let name: String
+    let age: Int
+}
+
+extension Person: CustomStringConvertible {
+    var description: String {
+        return name
+    }
+}
+```
+
+If you configured your FFSPicker with an array `[Person]`, we'd call `description` on each one and thus the picker view would be populated with the `name`s of each person in the array.
+
+_Simple._
+
+>Note: We get that you may not appreciate FFSPicker co-opting your `description`, so in the future we'll probably provide a custom protocol to separately conform to if you wish.
 
 ## Installation
 It's one source file so it hardly makes sense to build a framework for it. Still, I will probably support the usual dependency managers eventually. **Simply adding the source file to your project manually is likely the best choice though**. If you must build the framework, download/clone and drop the project file into your workspace for now.
