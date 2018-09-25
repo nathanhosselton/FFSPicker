@@ -45,7 +45,7 @@ final public class FFSPicker<T: CustomStringConvertible> {
     public let list: [T]
 
     /// The underlying `UIPickerView` object being managed.
-    /// - Note: If you're not interested in provided one yourself, this will contain the object we create for you.
+    /// - Note: If you're not interested in providing one yourself, this will contain the object we create for you.
     public let view: UIPickerView
 
     /**
