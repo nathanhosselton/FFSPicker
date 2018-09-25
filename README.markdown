@@ -4,7 +4,7 @@
 
 FFSPicker is a wrapper for your UIPickerViews. It handles the most common delegation patterns so your view controllers don't have to.
 
-## Why
+## Why?
 Sometimes you need a picker view for the input of a text field.
 
 ```swift
@@ -77,13 +77,13 @@ let thirdPicker = FFSPicker(withList: thirdList, managing: thirdTextField)
 Okay then. We expose a callback to hand back the object from your list and even pass in the text field (if you gave us one) for added convenience:
 
 ```swift
-//Though `FFSPicker` is generic, Swift lets you specify your concrete type in the callback.
+// Though `FFSPicker` is generic, Swift lets you specify your concrete type in the callback.
 func didSelect(thing: Foo, for textField: UITextField?) {
     //Your logic here
 }
 
 let picker = FFSPicker(withList: firstList, managing: firstTextField, callback: didSelect)
-//Or if you've already initialized
+// Or if you've already initialized
 picker.callback = didSelect
 ```
 
@@ -100,17 +100,19 @@ Already have a UIPickerView? That's cool too. The `init` optionally takes one to
 
 ```swift
 let picker = FFSPicker(withList: myList, wrapping: myPickerView)
-//Then ask for it back like
+// Then ask for it back like
 picker.view
 ```
 
->Note: Your UIPickerView will be _strongly_ retained. But this shouldn't be a problem.
+>Note: Your UIPickerView will be _strongly_ retained.
 
 >Note: `FFSPicker` does not subclass `UIPickerView`, so you cannot use it on Storyboard directly.
 
 ### Advanced configuration
 
-FFSPicker is generic, accepting arrays of any type conforming to `CustomStringConvertible`. This means you can, for example, provide an array of `Int`, and it'll just work. It also means you can provide an array of any custom object, so long as you've implemented `description` as per the protocol:
+FFSPicker is generic, accepting arrays of any type conforming to `CustomStringConvertible`. This means you can, for example, provide an array of `Int`, and it'll just work.
+
+It also means you can provide an array of any custom object, so long as you've implemented `description` as per the protocol:
 
 ```swift
 struct Person {
@@ -125,7 +127,7 @@ extension Person: CustomStringConvertible {
 }
 ```
 
-If you configured your FFSPicker with an array `[Person]`, we'd call `description` on each one and thus the picker view would be populated with the `name`s of each person in the array.
+If you configured your FFSPicker with an array `[Person]`, we'd call `description` on each and thus the picker view would be populated with the `name`s of each person in the array.
 
 _Simple._
 
